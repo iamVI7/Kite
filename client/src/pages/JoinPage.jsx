@@ -10,6 +10,7 @@ import ConnectionBadge from "../components/ConnectionBadge";
 import SessionTimer from "../components/SessionTimer";
 import TextShare from "../components/TextShare";
 import BackButton from "../components/BackButton";
+import { loadSession } from "../utils/session";
 
 export default function JoinPage() {
   const { roomId } = useParams();
@@ -24,6 +25,13 @@ export default function JoinPage() {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+
+    // Restore session context if returning from background
+    const saved = loadSession();
+    if (saved && saved.roomId === roomId) {
+      console.log("[session] restoring from sessionStorage");
+    }
+
     initSignaling(roomId);
   }, [roomId]);
 

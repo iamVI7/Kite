@@ -11,6 +11,7 @@ import ConnectionBadge from "../components/ConnectionBadge";
 import SessionTimer from "../components/SessionTimer";
 import TextShare from "../components/TextShare";
 import BackButton from "../components/BackButton";
+import { saveSession, loadSession, clearSession } from "../utils/session";
 
 export default function SessionPage() {
   const { roomId } = useParams();
@@ -29,6 +30,13 @@ export default function SessionPage() {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+
+    // Check if session already exists in storage (tab switch / minimize recovery)
+    const saved = loadSession();
+    if (saved && saved.roomId === roomId) {
+      console.log("[session] restoring from sessionStorage");
+    }
+
     initSignaling(roomId);
   }, [roomId]);
 
