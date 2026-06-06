@@ -4,7 +4,7 @@ let socket = null;
 
 export function getSocket() {
   if (!socket) {
-    socket = io(import.meta.env.VITE_SERVER_URL || "", {
+    socket = io(import.meta.env.VITE_SERVER_URL || window.location.origin, {
       autoConnect: false,
       transports: ["websocket", "polling"],
     });

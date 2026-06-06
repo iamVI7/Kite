@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import kiteLogo from "/Kite_Logo.png";
+const BASE = import.meta.env.VITE_SERVER_URL || "";
 
 /* ─── Inline SVG icons ─── */
 function IconShield() {
@@ -47,28 +48,28 @@ export default function HomePage() {
   const [joinError, setJoinError] = useState("");
 
   async function handleCreate() {
-    setCreating(true);
-    try {
-      const res = await fetch("/api/rooms", { method: "POST" });
-      const { roomId } = await res.json();
-      navigate(`/session/${roomId}`);
-    } catch {
-      setCreating(false);
-    }
+  setCreating(true);
+  try {
+    const res = await fetch(`${BASE}/api/rooms`, { method: "POST" });
+    const { roomId } = await res.json();
+    navigate(`/session/${roomId}`);
+  } catch {
+    setCreating(false);
   }
+}
 
   async function handleJoin(e) {
-    e.preventDefault();
-    const code = joinInput.trim().toUpperCase();
-    if (!code) return;
-    try {
-      const res = await fetch(`/api/rooms/${code}`);
-      if (!res.ok) { setJoinError("Session not found."); return; }
-      navigate(`/join/${code}`);
-    } catch {
-      setJoinError("Could not connect. Try again.");
-    }
+  e.preventDefault();
+  const code = joinInput.trim().toUpperCase();
+  if (!code) return;
+  try {
+    const res = await fetch(`${BASE}/api/rooms/${code}`);
+    if (!res.ok) { setJoinError("Session not found."); return; }
+    navigate(`/join/${code}`);
+  } catch {
+    setJoinError("Could not connect. Try again.");
   }
+}
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">
