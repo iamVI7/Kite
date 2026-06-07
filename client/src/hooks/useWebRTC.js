@@ -154,30 +154,32 @@ export function useWebRTC() {
         const pc = pcRef.current;
         const socket = getSocket();
 
-        // Reconnect socket if dropped
+        // Always reconnect socket if it dropped (safe to do)
         if (!socket.connected) {
           console.log("[visibility] socket disconnected, reconnecting");
           socket.connect();
         }
 
-        // Check WebRTC state — if dead, trigger reconnect immediately
+        // Only trigger WebRTC reconnect if the peer connection is
+        // genuinely broken — NOT just because the tab was switched.
+        // Tab switches fire visibilitychange but keep WebRTC alive.
+        // We wait 2s to let the connection state stabilise after
+        // coming back from a real background (e.g. app minimized).
         if (pc) {
-          const state = pc.connectionState;
-          console.log("[visibility] WebRTC state:", state);
-          if (state === "disconnected" || state === "failed" || state === "closed") {
-            if (!isIntentionalDisconnect.current) {
-              // Reset attempts so we get fresh retries after returning
+          setTimeout(() => {
+            const state = pc.connectionState;
+            console.log("[visibility] WebRTC state after settle:", state);
+            if (
+              (state === "disconnected" || state === "failed" || state === "closed") &&
+              !isIntentionalDisconnect.current
+            ) {
               reconnectAttemptsRef.current = 0;
               handleUnexpectedDisconnect();
             }
-          }
-        } else {
-          // No peer connection at all — rejoin the room
-          if (!isIntentionalDisconnect.current && roomIdRef.current) {
-            reconnectAttemptsRef.current = 0;
-            handleUnexpectedDisconnect();
-          }
+          }, 2000);
         }
+        // If no peer connection exists yet (e.g. peer never joined),
+        // do nothing — don't trigger a reconnect loop
       }
     };
 
